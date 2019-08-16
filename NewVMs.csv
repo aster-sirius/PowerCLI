@@ -1,1 +1,2 @@
 Name,Template,OSCustomizationSpec,IP,SubnetMask,Gateway,DNS1,DNS2,Cluster,vCenter_Server,Password,Domain,DomainUser,Host,Datastore,Customization,vCPU,Memory,Network,HardDrive,HardDrive2,DiskFormat,Location,WINS1,WINS2,TicketNumber,Description,FunctionCode,Agency,Application,Billed,Contact,ContactPhone,Managed,RebootPolicy,OU
+dhcp01,temp-win2012,win2012,172.18.45.220,255.255.255.0,172.18.45.1,172.18.45.230,172.18.45.229,,172.18.45.254,www.A600.c0m,a600.c0m,ctxadmin,172.18.45.252,252
