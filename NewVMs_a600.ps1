@@ -4,7 +4,7 @@ $vms = Import-CSV "C:\NewVMs.csv"
       $Template          = $vm.Template
       $Cluster           = $vm.Cluster
       $Datastore         = $vm.Datastore
-      $Custom            = "win2012"
+      $Custom            = $vm.Custom
       $vCPU              = $vm.vCPU
       $Memory            = $vm.Memory
       $HardDrive         = $vm.Harddrive
@@ -30,27 +30,28 @@ $vms = Import-CSV "C:\NewVMs.csv"
       $Managed           = $VM.Managed
       $RebootPolicy      = $VM.RebootPolicy
       $TicketNumber      = $VM.TicketNumber
-      $vCenter_Server    = $vCenter_Server
-      $Password          = $Password
-      $Domain            = $Domain
-      $Domainuser        = $DomainUser
-      $DomainPassword    = $Password
-      $VMHost              = $VM.Host
+      $vCenter_Server    = $vm.vCenter_Server
+      $Password          = $vm.Password
+      $Domain            = $vm.Domain
+      $Domainuser        = $vm.DomainUser
+      $DomainPassword    = $vm.Password
+      $VMHost            = $VM.Host
+      $OSCustomizationSpec = $vm.OSCustomizationSpec
       $IFADAccountExists = ""
 
       
       #Generate a new OSCustomizationSpec so this will add the servers to the domain, and configure the NIC
-      $OSCustomizationSpecExists = Get-OSCustomizationSpec -name temp-win2012
+      $OSCustomizationSpecExists = Get-OSCustomizationSpec -name $OSCustomizationSpec
       IF ($OSCustomizationSpecExists -eq $True){
-          Remove-OSCustomizationSpec -OSCustomizationSpec temp-win2012 -Confirm:$false
+          Remove-OSCustomizationSpec -OSCustomizationSpec $OSCustomizationSpec -Confirm:$false
           }
       Write-Host "Generating OSCustomizationSpec file" -ForegroundColor Yellow
-      New-OSCustomizationSpec -OrgName "Organization_Name" -OSType Windows -ChangeSid -Server $vCenter_Server -Name win2012 -FullName "Company_Name" -Type Persistent -AdminPassword $Password -TimeZone 'China' -AutoLogonCount 3 -Domain $Domain_Name -Domainuser $Domainuser -Domainpassword $Password -NamingScheme Vm -Description "PowerCli Use only" -LicenseMode PerServer -LicenseMaxConnections 5 -Confirm:$false
+      New-OSCustomizationSpec -OrgName "Organization_Name" -OSType Windows -ChangeSid -Server $vCenter_Server -Name $OSCustomizationSpec -FullName "Company_Name" -Type Persistent -AdminPassword $Password -TimeZone 'China' -AutoLogonCount 3 -Domain $Domain_Name -Domainuser $Domainuser -Domainpassword $Password -NamingScheme Vm -Description "PowerCli Use only" -LicenseMode PerServer -LicenseMaxConnections 5 -Confirm:$false
       Write-Host "Generating OSCustomizationNicMapping file" -ForegroundColor Yellow
-      Get-OSCustomizationNicMapping -OSCustomizationSpec $Template | Set-OSCustomizationNicMapping -Position 1 -IpMode UseStaticIP -IpAddress $IP -SubnetMask $SNM -DefaultGateway $GW -Dns $DNS1,$DNS2 -Wins $WINS1,$WINS2 -Confirm:$false
+      Get-OSCustomizationNicMapping -OSCustomizationSpec $OSCustomizationSpec | Set-OSCustomizationNicMapping -Position 1 -IpMode UseStaticIP -IpAddress $IP -SubnetMask $SNM -DefaultGateway $GW -Dns $DNS1,$DNS2 -Wins $WINS1,$WINS2 -Confirm:$false
             
       Write-Host "Generating new VM per spec sheet" -ForegroundColor Yellow
-      Start-Job -ScriptBlock {New-VM  -Name $VMName  -Datastore $Datastore -Template $Template -OSCustomizationSpec $Template -VMHost $VMHost -confirm:$False}
+      Start-Job -ScriptBlock {New-VM  -Name $VMName  -Datastore $Datastore -Template $Template -OSCustomizationSpec $OSCustomizationSpec -VMHost $VMHost -confirm:$False}
 }
 
       wait-Job | Get-Job
@@ -90,7 +91,8 @@ foreach ($vm in $vms){
       $Domain            = $Domain
       $Domainuser        = $DomainUser
       $DomainPassword    = $Password
-      $VMHost              = $VM.Host
+      $VMHost            = $VM.Host
+      $OSCustomizationSpec = $vm.OSCustomizationSpec
       $IFADAccountExists = ""
       #Sets the new VM as a variable to make configuration changes faster
       $NewVM = Get-VM -Name $VMName
@@ -101,8 +103,8 @@ foreach ($vm in $vms){
 
             
       #Primary Harddrive
-      $NewVMHddSize = ($NewVM | Get-HardDisk | Where {$_.Name -eq "Hard disk 1"}).CapacityGB
-      IF ($HardDrive -gt $NewVMHddSize){$NewVM | Get-HardDisk | Where {$_.Name -eq "Hard disk 1"} | Set-HardDisk -CapacityGB $HardDrive -Confirm:$false}
+      #$NewVMHddSize = ($NewVM | Get-HardDisk | Where {$_.Name -eq "Hard disk 1"}).CapacityGB
+      #IF ($HardDrive -gt $NewVMHddSize){$NewVM | Get-HardDisk | Where {$_.Name -eq "Hard disk 1"} | Set-HardDisk -CapacityGB $HardDrive -Confirm:$false}
             
       
          
